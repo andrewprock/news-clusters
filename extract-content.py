@@ -43,7 +43,7 @@ else:
 all_files = []
 
 for item in files:
-    dfi = pd.read_csv(item,  engine='python')
+    dfi = pd.read_csv(item, engine='python')
     all_files.append(dfi)
 
 df = pd.concat(all_files, axis=0, ignore_index=True)
@@ -57,4 +57,6 @@ print('content extracted')
 df['lang'] = df.apply(detect_lang, axis=1)
 print('language tagged')
 
-df.to_csv('extracted-content.csv', sep='\t', encoding='utf-8')
+print(df)
+
+df.to_csv('extracted-content.csv', sep='\t', index=False, encoding='utf-8')

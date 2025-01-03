@@ -1,5 +1,7 @@
 import sys
 from sentence_transformers import SentenceTransformer
+from sklearn.decomposition import PCA
+import numpy as np
 import pandas as pd
 
 
@@ -48,18 +50,4 @@ print('filtered for en')
 df['embedding'] = df.apply(embed_content, axis=1)
 print('content embeded')
 
-df.to_csv('embedded-content.csv', sep='\t', encoding='utf-8')
-
-# # reduce to two dimensions
-# embeddings = df['embedding'].tolist()
-
-# pca = PCA(n_components=2)
-# low_dim_embeddings = pca.fit_transform(embeddings)  # Shape: (n_samples, n_components)
-# print("Low-Dimensional Embeddings:\n", low_dim_embeddings)
-# np.savetxt("embeddings-2d.csv", low_dim_embeddings, delimiter=",")
-
-# # add the 2d embedding to the df and save, also pull x and y dims separately for ease
-# df['embedding_2d'] = [row for row in low_dim_embeddings]
-# df['embedding_x'] = [row[0] for row in low_dim_embeddings]
-# df['embedding_y'] = [row[1] for row in low_dim_embeddings]
-# df.to_csv('processed-embeddings.csv', sep='\t', encoding='utf-8')
+df.to_csv('embedded-content.csv', encoding='utf-8')
