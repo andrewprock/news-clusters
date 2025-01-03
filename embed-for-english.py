@@ -1,44 +1,14 @@
 import sys
-from langdetect import detect, detect_langs
 from sentence_transformers import SentenceTransformer
-from sklearn.decomposition import PCA
-import numpy as np
 import pandas as pd
 
 
 model = SentenceTransformer('all-MiniLM-L6-v2')
 
-
-#
-# Basic processing
-#
-
-def detect_language(text):
-    try:
-        # Detect the most probable language
-        language = detect(text)
-        # Detect probabilities for all possible languages
-        probabilities = detect_langs(text)
-        if False:
-            print('--')
-            print(text)
-            for prob in probabilities:
-                print(f"{prob.lang}: {prob.prob:.2f}")
-        return language, probabilities
-    except Exception as e:
-        return None, str(e)
-
 # depends on the global model
 def generate_embedding(text):
     embeds = model.encode([text])
     return embeds[0]
-
-def embedPhrases2D(phrases):
-    model = SentenceTransformer('all-MiniLM-L6-v2')
-    embeddings = model.encode(phrases)  # Shape: (n_samples, n_features)
-    pca = PCA(n_components=2)
-    low_dim_embeddings = pca.fit_transform(embeddings)  # Shape: (n_samples, n_components)
-    return low_dim_embeddings
 
 
 #
@@ -47,26 +17,7 @@ def embedPhrases2D(phrases):
 
 # NOTE: dependency on schema in here
 def filter_en(row):
-    lang, _ = detect_language(row['embedding-content'])
-    return lang == 'en'
-
-
-# extract content according to business logic
-# assumes we are using a data frame filter with
-# a specific schema
-def extract_content(row):
-    content = row['content']
-    desc = row['description']
-    title = row['title']
-    clen = 0 if pd.isna(content) else len(content)
-    dlen = 0 if pd.isna(desc) else len(desc)
-    tlen = 0 if pd.isna(title) else len(title)
-    if clen > dlen:
-        return content
-    elif dlen > tlen:
-        return desc
-    else:
-        return title
+    return row['lang'] == 'en'
 
 
 def embed_content(row):
@@ -75,18 +26,19 @@ def embed_content(row):
     return embed
 
 
-# test load
 if len(sys.argv) == 1:
-    file_path = 'csv/Business_News-20.csv'
+    files = ['extracted-content.csv']
 else:
-    file_path = sys.argv[1]
+    files = sys.argv[1:]
 
-df = pd.read_csv(file_path)
-print("CSV file successfully loaded!")
+all_files = []
+for item in files:
+    dfi = pd.read_csv(item, sep='\t', engine='python')
+    all_files.append(dfi)
 
-# extract the content
-df['embedding-content'] = df.apply(extract_content, axis=1)
-print('content extracted')
+df = pd.concat(all_files, axis=0, ignore_index=True)
+
+print("CSV file loaded")
 
 # filter for only enlish articles
 df = df[df.apply(filter_en, axis=1)]
@@ -96,18 +48,18 @@ print('filtered for en')
 df['embedding'] = df.apply(embed_content, axis=1)
 print('content embeded')
 
-print(df)
+df.to_csv('embedded-content.csv', sep='\t', encoding='utf-8')
 
-# reduce to two dimensions
-embeddings = df['embedding'].tolist()
+# # reduce to two dimensions
+# embeddings = df['embedding'].tolist()
 
-pca = PCA(n_components=2)
-low_dim_embeddings = pca.fit_transform(embeddings)  # Shape: (n_samples, n_components)
-print("Low-Dimensional Embeddings:\n", low_dim_embeddings)
-np.savetxt("embeddings-2d.csv", low_dim_embeddings, delimiter=",")
+# pca = PCA(n_components=2)
+# low_dim_embeddings = pca.fit_transform(embeddings)  # Shape: (n_samples, n_components)
+# print("Low-Dimensional Embeddings:\n", low_dim_embeddings)
+# np.savetxt("embeddings-2d.csv", low_dim_embeddings, delimiter=",")
 
-# add the 2d embedding to the df and save, also pull x and y dims separately for ease
-df['embedding_2d'] = [row for row in low_dim_embeddings]
-df['embedding_x'] = [row[0] for row in low_dim_embeddings]
-df['embedding_y'] = [row[1] for row in low_dim_embeddings]
-df.to_csv('processed-embeddings.csv', sep='\t', encoding='utf-8')
+# # add the 2d embedding to the df and save, also pull x and y dims separately for ease
+# df['embedding_2d'] = [row for row in low_dim_embeddings]
+# df['embedding_x'] = [row[0] for row in low_dim_embeddings]
+# df['embedding_y'] = [row[1] for row in low_dim_embeddings]
+# df.to_csv('processed-embeddings.csv', sep='\t', encoding='utf-8')
