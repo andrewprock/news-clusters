@@ -23,7 +23,7 @@ def filter_en(row):
 
 
 def embed_content(row):
-    content = row['embedding-content']
+    content = row['embedding_content']
     embed = generate_embedding(content)
     return embed
 
@@ -50,4 +50,4 @@ print('filtered for en')
 df['embedding'] = df.apply(embed_content, axis=1)
 print('content embeded')
 
-df.to_csv('embedded-content.csv', encoding='utf-8')
+df.to_csv('embedded-content.csv', sep='\t', index=False, encoding='utf-8')

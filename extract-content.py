@@ -15,7 +15,7 @@ def detect_language(text):
 
 
 def detect_lang(row):
-    lang, _ = detect_language(row['embedding-content'])
+    lang, _ = detect_language(row['embedding_content'])
     return lang
 
 # extract content according to business logic
@@ -29,11 +29,11 @@ def extract_content(row):
     dlen = 0 if pd.isna(desc) else len(desc)
     tlen = 0 if pd.isna(title) else len(title)
     if clen > dlen:
-        return content
+        return content.strip()
     elif dlen > tlen:
-        return desc
+        return desc.strip()
     else:
-        return title
+        return title.strip()
 
 if len(sys.argv) == 1:
     files = ['csv/small/Business_News-20.csv']
@@ -44,6 +44,7 @@ all_files = []
 
 for item in files:
     dfi = pd.read_csv(item, engine='python')
+    dfi['source_dataset'] = item # provenance
     all_files.append(dfi)
 
 df = pd.concat(all_files, axis=0, ignore_index=True)
@@ -51,8 +52,10 @@ df = pd.concat(all_files, axis=0, ignore_index=True)
 print("CSV file loaded")
 
 # extract the content and tag the language
-df['embedding-content'] = df.apply(extract_content, axis=1)
+df['embedding_content'] = df.apply(extract_content, axis=1)
 print('content extracted')
+
+df.drop_duplicates(subset='embedding_content', inplace=True)
 
 df['lang'] = df.apply(detect_lang, axis=1)
 print('language tagged')

@@ -15,7 +15,7 @@ def embedPhrases2D(phrases):
 
 if len(sys.argv) == 1:
     files = ['embedded-content.csv']
-    dimensions = 2
+    dimensions = 4
 else:
     dimensions = int(sys.argv[1])
     files = [sys.argv[2]]
@@ -47,8 +47,8 @@ print("Low-Dimensional Embeddings:\n", low_dim_embeddings)
 np.savetxt("embeddings-2d.csv", low_dim_embeddings, delimiter=",")
 
 # add the 2d embedding to the df and save, also pull x and y dims separately for ease
-df['embedding_2d'] = [row for row in low_dim_embeddings]
+df['embedding_lowd'] = [row for row in low_dim_embeddings]
 df['embedding_x'] = [row[0] for row in low_dim_embeddings]
 df['embedding_y'] = [row[1] for row in low_dim_embeddings]
-df.to_csv('processed-embeddings.csv', sep='\t', encoding='utf-8')
+df.to_csv('processed-embeddings.csv', index=False, sep='\t', encoding='utf-8')
 
