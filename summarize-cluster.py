@@ -17,6 +17,7 @@ nltk.download('punkt_tab')
 
 # load the labelled clusters
 df = pd.read_csv('labelled-embeddings.csv', sep='\t', engine='python')
+pd.set_option('display.max_rows', 200)
 
 labels = df['labels'].unique()
 labels.sort()
@@ -30,7 +31,6 @@ for label in labels:
     print('----', label, '----')
     cluster = df.loc[df['labels'] == label]
     cluster_content = cluster['embedding_content']
-    print(cluster['title'])
 
 
     # decode embeddings
@@ -68,7 +68,10 @@ for label in labels:
     # get the top tokens
     fdist = FreqDist(cleaned_words)
     top_words = fdist.most_common(8)
-    print(top_words)
+    print('top stemmed words: ', top_words)
+    print('mean cosine dist : ', cum)
+    print(cluster['title'])
+
 
 for key, value in label_scores.items():
     print(key, value)
